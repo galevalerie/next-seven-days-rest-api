@@ -24,8 +24,8 @@ func main() {
 func handleRequests() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", defaultPage)
-	router.HandleFunc("/date/", useCurrentDate)
-	router.HandleFunc("/date/{date}", useSpecificDate) //date format should be YYYYMMDD
+	router.HandleFunc("/date/", useCurrentDate).Methods("GET")
+	router.HandleFunc("/date/{date}", useSpecificDate).Methods("GET") //date format should be YYYYMMDD
 
 	log.Fatal(http.ListenAndServe(":9090", router))
 }
@@ -57,6 +57,7 @@ func useSpecificDate(w http.ResponseWriter, r *http.Request){
 		//Reset or clear the list
 		days = nil
 	} else {
+		w.WriteHeader(400)
 		fmt.Fprintf(w,  "Invalid date.")
 	}
 	

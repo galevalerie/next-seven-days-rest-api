@@ -30,23 +30,31 @@ func handleRequests() {
 	log.Fatal(http.ListenAndServe(":9090", router))
 }
 
+//This page will be the landing page
 func defaultPage(w http.ResponseWriter, r *http.Request){
 	fmt.Fprintf(w,"Instructions:\n")
-	fmt.Fprintf(w,"To get the next seven days from CURRENT DATE, enter http://localhost:9090/date/\n")
-	fmt.Fprintf(w,"To get the next seven days from a SPECIFIC DATE, enter http://localhost:9090/date/{date} where {date} should be in format YYYYMMDD")
+	fmt.Fprintf(w,"To get the next seven days from CURRENT DATE, enter http://localhost:9090/date/.\n")
+	fmt.Fprintf(w,"To get the next seven days from a SPECIFIC DATE, enter http://localhost:9090/date/{date} where {date} should be in format YYYYMMDD.")
 }
 
+//This page will display the response schema if a user didn't specify a date in the request
 func useCurrentDate(w http.ResponseWriter, r *http.Request){
 	retrieveNextSevenDays(time.Now())
 	prettyPrintJson(days, w)
+
+	//Reset or clear the list
 	days = nil
 }
 
+//This page will display the response schema if a user specified a date in the request
 func useSpecificDate(w http.ResponseWriter, r *http.Request){
+	//Validate if the parameter is a valid date
 	date, err := time.Parse("20060102", mux.Vars(r)["date"])
 	if (err == nil){
 		retrieveNextSevenDays(date)
 		prettyPrintJson(days, w)
+		
+		//Reset or clear the list
 		days = nil
 	} else {
 		fmt.Fprintf(w,  "Invalid date.")
@@ -54,6 +62,7 @@ func useSpecificDate(w http.ResponseWriter, r *http.Request){
 	
 }
 
+//This will retrieve the next seven days from the start date specified.
 func retrieveNextSevenDays(startingDate time.Time){
 	index := 0
 	
@@ -63,9 +72,12 @@ func retrieveNextSevenDays(startingDate time.Time){
 			break
 		}
 		
+		//Add number of days from the starting date
 		nextDay := startingDate.AddDate(0, 0, index)
 		
 		nextDate := string(nextDay.Format("January 2, 2006"))
+
+		//Get weekday of the date
 		weekDay := nextDay.Weekday().String()
 
 		var nextDays = Day{
@@ -73,10 +85,12 @@ func retrieveNextSevenDays(startingDate time.Time){
 				Day: weekDay,
 			}
 
+		//Add the days to the list of days
 		days = append(days, nextDays)
 	}
 }
 
+//This will format the json data to be more readable
 func prettyPrintJson(data interface{}, w http.ResponseWriter){
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "    ")
